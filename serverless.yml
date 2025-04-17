@@ -1,0 +1,78 @@
+org: giabaodemo
+app: demo
+service: taskService
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-west-2
+  environment:
+    DB_USERNAME: ${env:DB_USERNAME}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME}
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT}
+    DB_USER: ${env:DB_USER}
+    DB_PASS: ${env:DB_PASS}
+    ACCESS_TOKEN_SECRET: ${env:ACCESS_TOKEN_SECRET}
+
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "http://localhost:3000"
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowCredentials: false
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 4000
+
+functions:
+  # TASK handlers
+  getTasks:
+    handler: src/functions/getTasks.getTasks
+    events:
+      - httpApi:
+          path: /tasks
+          method: get
+
+  createTask:
+    handler: src/functions/createTask.createTask
+    events:
+      - httpApi:
+          path: /tasks
+          method: post
+
+  getTaskById:
+    handler: src/functions/getTask.getTask
+    events:
+      - httpApi:
+          path: /tasks/{id}/{userId}
+          method: get
+
+  updateTask:
+    handler: src/functions/updateTask.updateTask
+    events:
+      - httpApi:
+          path: /tasks/{id}
+          method: put
+
+  deleteTask:
+    handler: src/functions/deleteTask.deleteTask
+    events:
+      - httpApi:
+          path: /tasks/{id}
+          method: delete
