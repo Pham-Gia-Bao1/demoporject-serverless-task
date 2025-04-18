@@ -29,6 +29,10 @@ export default {
         type: DataTypes.INTEGER,
         allowNull: false
       },
+      zohoId : {
+        type: DataTypes.INTEGER,
+        allowNull: true
+       },
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE,
@@ -38,7 +42,7 @@ export default {
         allowNull: false,
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-      }
+      },
     });
   },
 

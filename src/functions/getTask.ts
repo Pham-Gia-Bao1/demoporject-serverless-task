@@ -1,26 +1,21 @@
-import { Pool } from 'mysql2/promise';
-import pool from '../config/db';
-import {formatResponse} from '../utils';
+import { formatResponse } from '../utils';
 import { getTaskById } from '../services/taskService';
 import { validateTaskInput } from '../utils';
-
-const typedPool: Pool = pool;
-
 export const getTask = async (event: any): Promise<any> => {
   try {
     const taskId = event.pathParameters?.id;
     const userId = event.requestContext.authorizer?.userId;
-        const validationError = validateTaskInput(taskId);
-    
-    const task = await getTaskById(taskId, userId);
-
-    if (!task) {
-      throw new Error('Task not found');
+    const validationError = validateTaskInput({taskId, userId});
+    if (validationError) {
+      return formatResponse(400, validationError);
     }
-    if (task.userId !== userId) {
+    const task = await getTaskById(taskId, userId);
+    if (!task) {
+      return formatResponse(404, 'Task not found');
+    }
+    if (task.userId != userId) {
       return formatResponse(403, 'You do not have permission to access this task');
     }
-
     return formatResponse(200, 'Task retrieved successfully', task);
   } catch (error) {
     const typedError = error as Error;

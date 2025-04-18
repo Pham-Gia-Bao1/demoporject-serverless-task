@@ -3,12 +3,19 @@ import { createPool, Pool } from 'mysql2/promise';
 
 dotenv.config();
 
+// Read from environment variables (with fallback to defaults)
+const DB_USERNAME = process.env.DB_USERNAME || '';
+const DB_PASSWORD = process.env.DB_PASSWORD || '';
+const DB_NAME = process.env.DB_NAME || '';
+const DB_HOST = process.env.DB_HOST || '';
+const DB_PORT = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 11435;
+
 const pool: Pool = createPool({
-  host: process.env.DB_HOST || '',
-  user: process.env.DB_USER || '',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || '',
-  port: Number(process.env.DB_PORT) || 11435,
+  host: DB_HOST,
+  user: DB_USERNAME,
+  password: DB_PASSWORD,
+  database: DB_NAME,
+  port: DB_PORT,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

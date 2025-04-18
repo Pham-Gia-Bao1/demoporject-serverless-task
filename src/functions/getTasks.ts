@@ -2,9 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
 import { getTasksByUserId } from '../services/taskService';
 import { formatResponse } from '../utils';
-
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-
 export const getTasks: APIGatewayProxyHandler = async (event) => {
   try {
     // Lấy token từ headers

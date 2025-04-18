@@ -3,8 +3,6 @@ import pool from '../config/db';
 import { Task } from '../models/task';
 import AWS from 'aws-sdk';
 import { getDbConnection } from '../utils';
-
-const typedPool: Pool = pool;
 const sns = new AWS.SNS();
 
 export const getTasksByUserId = async (userId: string): Promise<Task[]> => {
@@ -16,6 +14,16 @@ export const getTasksByUserId = async (userId: string): Promise<Task[]> => {
     connection.release();
   }
 };
+
+export const getAllTasksTest = async (): Promise<Task[]> => {
+  const connection = await getDbConnection();
+  try {
+    const [rows] = await connection.execute('SELECT * FROM tasks');
+    return rows as Task[];
+  } finally {
+    connection.release();
+  }
+}
 
 export const createTask = async (taskData: {
   title: string;
@@ -34,31 +42,27 @@ export const createTask = async (taskData: {
   const connection = await getDbConnection();
   try {
     const [result] = await connection.execute(
-      'INSERT INTO tasks (title, status, priority, date, userId) VALUES (?, ?, ?, ?, ?)',
-      [title, status, priority, validDate, userId]
+      'INSERT INTO tasks (title, status, priority, date, userId, zohoId) VALUES (?, ?, ?, ?, ?, ?)',
+      [title, status, priority, validDate, userId, null]
     );
-
-    const message = `Task created with ID: ${result}, Title: ${title}`;
-    const params = {
-      Message: message,
-      TopicArn: 'arn:aws:sns:us-west-2:499090204996:TaskNotificationTopic.fifo',
-      MessageGroupId: "taskGroup1",
-      MessageDeduplicationId: Date.now().toString()
-    };
-
-    sns.publish(params, (err, data) => {
-      if (err) {
-        console.log("Error publishing message:", err);
-      } else {
-        console.log("Message published successfully:", data);
-      }
-    });
-
     return result;
   } finally {
     connection.release();
   }
 };
+
+export const updateZohoId = async (taskId: string | number, zohoId: string | number) => {
+  const connection = await getDbConnection();
+  try {
+    await connection.execute(
+      'UPDATE tasks SET zohoId = ? WHERE id = ?',
+      [zohoId, taskId]
+    );
+  }
+  finally {
+    connection.release();
+  }
+}
 
 export const updateTask = async (taskId: string, taskData: {
   title?: string;
@@ -68,12 +72,10 @@ export const updateTask = async (taskId: string, taskData: {
   userId?: number;
 }) => {
   const { title, status, priority, date, userId } = taskData;
-
   const validDate = date ? new Date(date) : undefined;
   if (date && isNaN(validDate!.getTime())) {
     throw new Error('Invalid date format');
   }
-
   const connection = await getDbConnection();
   try {
     await connection.execute(
